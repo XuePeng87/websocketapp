@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Web Socket JavaScript Echo Client</title>
+</head>
+<body>
+	<h1>Echo Server</h1>
+
+	<div style="text-align: left;">
+		<form action="">
+			<input onclick="send_echo();" value="Press to send" type="button">
+			<input id="textID" name="message" value="Hello Web Sockets"
+				type="text"> <br>
+		</form>
+	</div>
+
+	<div id="output"></div>
+</body>
+
+<script>
+	var echo_websocket;
+
+	function init() {
+		output = document.getElementById("output");
+	}
+
+	function send_echo() {
+		// 定义websocket的端点地址
+		var wsUri = "ws://localhost:8080/websocketapp/echo";
+		writeToScreen("Connecting to " + wsUri);
+		// 创建websocket对象
+		echo_websocket = new WebSocket(wsUri);
+		
+		// 打开websocket
+		echo_websocket.onopen = function(evt) {
+			writeToScreen("connected!");
+			// 发送文本框中的内容到服务端
+			doSend(textID.value);
+		}
+		
+		// 接收到服务端处理的数据
+		echo_websocket.onmessage = function(evt) {
+			writeToScreen("Received message: " + evt.data);
+			// 关闭websocket
+			echo_websocket.close();
+			writeToScreen("Closed!");
+		}
+
+		echo_websocket.onerror = function(evt) {
+			writeToScreen("<span style='color: red'>ERROR:</span>" + evt.data);
+			echo_websocket.close();
+		}
+	}
+
+	function doSend(message) {
+		echo_websocket.send(message);
+		writeToScreen("Sent message:" + message);
+	}
+
+	function writeToScreen(message) {
+		var pre = document.createElement("p");
+		pre.style.wordWrap = "break-word";
+		pre.innerHTML = message;
+		output.appendChild(pre);
+	}
+
+	window.addEventListener("load", init, false);
+</script>
+</html>
