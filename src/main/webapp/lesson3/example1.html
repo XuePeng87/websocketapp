@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<!-- 新 Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet"
+	href="http://cdn.bootcss.com/bootstrap/3.3.0/css/bootstrap.min.css">
+<!-- 可选的Bootstrap主题文件（一般不用引入） -->
+<link rel="stylesheet"
+	href="http://cdn.bootcss.com/bootstrap/3.3.0/css/bootstrap-theme.min.css">
+<!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+<script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+	<div class="container">
+		<h1>WebSocket发送JAVA对象</h1>
+		<div class="row">
+
+			<div class="col-md-12">
+				<p>
+					<button type="button" class="btn btn-primary"
+						onclick="open_connection()">打开连接</button>
+					<button type="button" class="btn btn-danger"
+						onclick="closeClient()">关闭连接</button>
+				</p>
+			</div>
+		</div>
+		<div class="row">
+			<form class="form-inline" role="form">
+				<div class="col-md-12">
+					<div class="form-group">
+						<div class="input-group">
+							<div class="input-group">
+								<span class="input-group-addon"><span
+									class="glyphicon glyphicon-send"></span></span> 
+								<input id="txtMessage" value="{id:1, name: jack}" readonly="readonly"
+									type="text" class="form-control" placeholder="Send Message">
+							</div>
+							<button type="button" class="btn btn-info"
+								onclick="messageClick()">发送消息</button>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<p id="output">
+					<br>
+				</p>
+			</div>
+		</div>
+	</div>
+</body>
+<script>
+	var lifecycle_websocket = null;
+
+	function init() {
+		output = document.getElementById("output");
+	}
+	
+	function dispose() {
+		lifecycle_websocket.close();
+		lifecycle_websocket = null;
+	}
+
+	function open_connection() {
+		if (lifecycle_websocket == null) {
+			lifecycle_websocket = new WebSocket(
+					"ws://localhost:8080/websocketapp/objecthandle");
+
+			lifecycle_websocket.onmessage = function(evt) {
+				displayMessage(evt.data);
+			}
+			lifecycle_websocket.onclose = function(evt) {
+				displayMessage(evt.data);
+			}
+			lifecycle_websocket.onerror = function(evt) {
+				displayMessage(evt.data);
+			}
+		}
+	}
+
+	function messageClick() {
+		var user = {
+			id: 1,
+			name: "jack"
+		}
+		send_message(JSON.stringify(user));
+	}
+
+	function closeClient() {
+		lifecycle_websocket.close();
+		displayMessage("danger:client closed.")
+	}
+
+	function send_message(message) {
+		lifecycle_websocket.send(message);
+	}
+
+	function displayMessage(message) {
+		var pre = document.createElement("p");
+		if(message.indexOf('{') == 0) {
+			// 调用bootstrap样式
+			pre.className = "text-info";
+			pre.innerHTML = message;
+			output.appendChild(pre);
+		}
+		else {
+			var flag = message.substring(0, message.indexOf(':'));
+			var data = message.substring(message.indexOf(':') + 1);
+
+			// 调用bootstrap样式
+			pre.className = "text-" + flag;
+			pre.innerHTML = data;
+			output.appendChild(pre);
+		}
+	}
+
+	window.addEventListener("load", init, false);
+	window.addEventListener("unload", dispose, false);
+</script>
+</html>
